@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>繪本製作工具 · Storybook Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --warm-white: #FFFCF8;
+    --sky: #5BB8F5;
+    --sky-light: #A8D8F0;
+    --coral: #FF7B6B;
+    --coral-light: #FFADA5;
+    --mint: #52C9A0;
+    --mint-light: #A5E3CC;
+    --amber: #FFB347;
+    --amber-light: #FFDBA0;
+    --lavender: #9B7FD4;
+    --lavender-light: #C9B8EC;
+    --ink: #2D2A3E;
+    --ink-light: #5A5578;
+    --border: rgba(45,42,62,0.10);
+    --shadow: 0 4px 24px rgba(45,42,62,0.10);
+    --shadow-lg: 0 12px 48px rgba(45,42,62,0.15);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', 'Noto Serif TC', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #5BB8F5 0%, #9B7FD4 60%, #FF7B6B 100%);
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  header h1 {
+    font-family: 'Quicksand', sans-serif;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  header p {
+    color: rgba(255,255,255,0.88);
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    margin-top: .5rem;
+    position: relative;
+  }
+
+  /* ── NAV TABS ── */
+  nav {
+    background: var(--warm-white);
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-inner {
+    display: flex;
+    min-width: max-content;
+    padding: 0 1rem;
+  }
+  .tab-btn {
+    display: flex; align-items: center; gap: .4rem;
+    padding: .85rem 1.1rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: .82rem;
+    color: var(--ink-light);
+    border: none; background: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .tab-btn .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--ink-light);
+    font-size: .72rem;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    transition: all .2s;
+  }
+  .tab-btn.active, .tab-btn:hover {
+    color: var(--ink);
+    border-bottom-color: var(--sky);
+  }
+  .tab-btn.active .step-num {
+    background: var(--sky);
+    color: #fff;
+  }
+  .tab-btn:nth-child(2).active { border-bottom-color: var(--mint); }
+  .tab-btn:nth-child(2).active .step-num { background: var(--mint); }
+  .tab-btn:nth-child(3).active { border-bottom-color: var(--coral); }
+  .tab-btn:nth-child(3).active .step-num { background: var(--coral); }
+  .tab-btn:nth-child(4).active { border-bottom-color: var(--amber); }
+  .tab-btn:nth-child(4).active .step-num { background: var(--amber); }
+  .tab-btn:nth-child(5).active { border-bottom-color: var(--lavender); }
+  .tab-btn:nth-child(5).active .step-num { background: var(--lavender); }
+  .tab-btn:nth-child(6).active { border-bottom-color: var(--coral); }
+  .tab-btn:nth-child(6).active .step-num { background: var(--coral); }
+  .tab-btn:nth-child(7).active { border-bottom-color: var(--mint); }
+  .tab-btn:nth-child(7).active .step-num { background: var(--mint); }
+  .tab-btn:nth-child(8).active { border-bottom-color: var(--sky); }
+  .tab-btn:nth-child(8).active .step-num { background: var(--sky); }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--warm-white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    box-shadow: var(--shadow);
+  }
+  .card-header {
+    display: flex; align-items: center; gap: .7rem;
+    margin-bottom: 1.2rem;
+  }
+  .card-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .card-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 1.05rem; }
+  .card-sub { font-size: .8rem; color: var(--ink-light); margin-top: .1rem; }
+
+  /* ── FORM ELEMENTS ── */
+  label { display: block; font-size: .82rem; font-weight: 700; color: var(--ink-light); margin-bottom: .4rem; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: .65rem .9rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif;
+    font-size: .9rem;
+    color: var(--ink);
+    background: var(--cream);
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--sky);
+    box-shadow: 0 0 0 3px rgba(91,184,245,0.15);
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:520px) { .form-row { grid-template-columns: 1fr; } }
+  .form-group { margin-bottom: 1rem; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    padding: .7rem 1.4rem;
+    border-radius: 999px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: .88rem;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
+    letter-spacing: .2px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--sky); color: #fff; box-shadow: 0 4px 16px rgba(91,184,245,0.35); }
+  .btn-primary:hover { background: #3ea8eb; box-shadow: 0 6px 20px rgba(91,184,245,0.45); }
+  .btn-mint { background: var(--mint); color: #fff; box-shadow: 0 4px 16px rgba(82,201,160,0.35); }
+  .btn-mint:hover { background: #3ab88e; }
+  .btn-coral { background: var(--coral); color: #fff; box-shadow: 0 4px 16px rgba(255,123,107,0.35); }
+  .btn-coral:hover { background: #e8604f; }
+  .btn-amber { background: var(--amber); color: #fff; box-shadow: 0 4px 16px rgba(255,179,71,0.35); }
+  .btn-lavender { background: var(--lavender); color: #fff; box-shadow: 0 4px 16px rgba(155,127,212,0.35); }
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--ink-light);
+  }
+  .btn-outline:hover { border-color: var(--sky); color: var(--sky); background: rgba(91,184,245,0.06); }
+  .btn-sm { padding: .45rem .9rem; font-size: .8rem; }
+  .btn-group { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1rem; }
+
+  /* ── TAGS / CHIPS ── */
+  .chip {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .3rem .75rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 700;
+    background: rgba(91,184,245,0.12);
+    color: var(--sky);
+  }
+  .chip.mint { background: rgba(82,201,160,0.12); color: var(--mint); }
+  .chip.coral { background: rgba(255,123,107,0.12); color: var(--coral); }
+  .chip.amber { background: rgba(255,179,71,0.12); color: #c87d00; }
+  .chip.lavender { background: rgba(155,127,212,0.12); color: var(--lavender); }
+
+  /* ── PAGE CARDS (storyboard) ── */
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .page-card {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    position: relative;
+    transition: box-shadow .2s;
+  }
+  .page-card:hover { box-shadow: var(--shadow); }
+  .page-num {
+    position: absolute; top: -10px; left: 14px;
+    background: var(--sky);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 800;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+  }
+  .page-card textarea {
+    min-height: 70px;
+    font-size: .82rem;
+  }
+  .page-card-title {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--ink-light);
+    margin-bottom: .5rem;
+    margin-top: .3rem;
+  }
+  .del-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(255,123,107,0.12);
+    color: var(--coral);
+    border: none; border-radius: 50%;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: .85rem;
+    transition: background .15s;
+  }
+  .del-btn:hover { background: var(--coral); color: #fff; }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .55rem .8rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: .4rem;
+    font-size: .88rem;
+    background: rgba(82,201,160,0.07);
+    border: 1px solid rgba(82,201,160,0.18);
+  }
+  .checklist li input[type="checkbox"] {
+    width: 17px; height: 17px;
+    accent-color: var(--mint);
+    flex-shrink: 0;
+  }
+  .checklist li.warn { background: rgba(255,179,71,0.08); border-color: rgba(255,179,71,0.25); }
+  .checklist li.warn input { accent-color: var(--amber); }
+
+  /* ── AUDIO LIST ── */
+  .audio-list { display: flex; flex-direction: column; gap: .7rem; }
+  .audio-item {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .8rem 1rem;
+    display: flex; align-items: center; gap: .8rem;
+    flex-wrap: wrap;
+  }
+  .audio-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .audio-info { flex: 1; min-width: 120px; }
+  .audio-name { font-weight: 700; font-size: .88rem; }
+  .audio-meta { font-size: .75rem; color: var(--ink-light); margin-top: .1rem; }
+  audio { width: 100%; margin-top: .5rem; border-radius: 8px; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: .5rem 0;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--sky), var(--mint));
+    transition: width .4s ease;
+  }
+
+  /* ── STEP INDICATOR ── */
+  .step-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: .5rem 0;
+    scrollbar-width: none;
+    margin-bottom: 1.5rem;
+  }
+  .step-flow::-webkit-scrollbar { display: none; }
+  .step-item {
+    display: flex; align-items: center;
+    flex-shrink: 0;
+  }
+  .step-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--ink-light);
+    font-size: .75rem;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid transparent;
+    transition: all .2s;
+  }
+  .step-dot.done { background: var(--mint); color: #fff; border-color: var(--mint); }
+  .step-dot.current { background: var(--sky); color: #fff; border-color: var(--sky); box-shadow: 0 0 0 4px rgba(91,184,245,0.2); }
+  .step-line {
+    width: 28px; height: 2px;
+    background: var(--border);
+    transition: background .2s;
+  }
+  .step-line.done { background: var(--mint); }
+  .step-label {
+    font-size: .65rem;
+    font-weight: 700;
+    color: var(--ink-light);
+    margin-top: .3rem;
+    text-align: center;
+    width: 32px;
+  }
+
+  /* ── COLOR SWATCHES ── */
+  .swatch-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+  .swatch {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .swatch:hover, .swatch.selected { transform: scale(1.15); box-shadow: 0 0 0 3px var(--sky); }
+
+  /* ── RANGE ── */
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border);
+    outline: none;
+    padding: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--sky);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(91,184,245,0.4);
+  }
+  .range-row { display: flex; align-items: center; gap: 1rem; }
+  .range-val { font-weight: 800; font-size: .9rem; color: var(--sky); min-width: 2rem; text-align: right; }
+
+  /* ── VIDEO PREVIEW ── */
+  .video-preview {
+    background: #1a1a2e;
+    border-radius: var(--radius);
+    aspect-ratio: 16/9;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .video-preview .slide-text {
+    color: #fff;
+    text-align: center;
+    padding: 2rem;
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(.9rem, 3vw, 1.4rem);
+    line-height: 1.8;
+    animation: pulse 3s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+  .slide-counter {
+    position: absolute; bottom: 12px; right: 14px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: .75rem;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── EXPORT PANEL ── */
+  .export-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  .export-option {
+    background: var(--cream);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .export-option:hover, .export-option.selected {
+    border-color: var(--sky);
+    background: rgba(91,184,245,0.06);
+    box-shadow: var(--shadow);
+  }
+  .export-option .ex-icon { font-size: 2rem; margin-bottom: .5rem; }
+  .export-option .ex-label { font-weight: 700; font-size: .85rem; }
+  .export-option .ex-desc { font-size: .72rem; color: var(--ink-light); margin-top: .2rem; }
+
+  /* ── HELP ── */
+  .help-section { margin-bottom: 1.5rem; }
+  .help-section h3 {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: .7rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .help-step {
+    display: flex; gap: 1rem;
+    padding: .9rem 1rem;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: .6rem;
+    align-items: flex-start;
+  }
+  .help-step-num {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--sky);
+    color: #fff;
+    font-weight: 800;
+    font-size: .8rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .help-step-body { flex: 1; }
+  .help-step-title { font-weight: 700; font-size: .88rem; margin-bottom: .2rem; }
+  .help-step-desc { font-size: .82rem; color: var(--ink-light); line-height: 1.6; }
+  .tip-box {
+    background: rgba(255,179,71,0.1);
+    border: 1.5px solid rgba(255,179,71,0.3);
+    border-radius: var(--radius-sm);
+    padding: .9rem 1rem;
+    font-size: .84rem;
+    line-height: 1.6;
+    margin-top: .8rem;
+  }
+  .tip-box strong { color: #b87000; }
+
+  /* ── DESIGN PRINCIPLES ── */
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: .8rem;
+  }
+  .principle-card {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    text-align: center;
+  }
+  .principle-icon { font-size: 1.6rem; margin-bottom: .4rem; }
+  .principle-title { font-weight: 800; font-size: .82rem; color: var(--sky); margin-bottom: .3rem; }
+  .principle-desc { font-size: .75rem; color: var(--ink-light); line-height: 1.5; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: #fff;
+    padding: .7rem 1.4rem;
+    border-radius: 999px;
+    font-size: .88rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-lg);
+    transition: transform .3s ease;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── BOTTOM NAV ARROWS ── */
+  .nav-arrows {
+    display: flex; justify-content: space-between;
+    margin-top: 1.5rem;
+  }
+
+  /* ── MISC ── */
+  .section-divider {
+    border: none;
+    border-top: 1.5px dashed var(--border);
+    margin: 1.2rem 0;
+  }
+  .info-row {
+    display: flex; gap: .5rem; align-items: center;
+    font-size: .82rem; color: var(--ink-light);
+    margin-top: .5rem;
+  }
+  .badge {
+    display: inline-block;
+    padding: .15rem .55rem;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 800;
+    background: rgba(91,184,245,0.15);
+    color: var(--sky);
+  }
+  .badge.green { background: rgba(82,201,160,0.15); color: var(--mint); }
+  .badge.red { background: rgba(255,123,107,0.15); color: var(--coral); }
+
+  /* character style preview */
+  .char-preview {
+    display: flex; flex-wrap: wrap; gap: .7rem;
+    margin-top: .7rem;
+  }
+  .char-card {
+    flex: 1 1 140px;
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .8rem;
+  }
+  .char-card .char-avatar { font-size: 2.5rem; text-align: center; margin-bottom: .4rem; }
+  .char-card input { width: 100%; margin-bottom: .4rem; font-size: .8rem; }
+
+  /* JSON editor */
+  .json-editor {
+    font-family: 'Courier New', monospace;
+    font-size: .78rem;
+    min-height: 200px;
+    background: #1e1e2e;
+    color: #a6da95;
+    border: 1.5px solid #44475a;
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    resize: vertical;
+  }
+  .json-editor:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(91,184,245,0.15); outline: none; }
+
+  /* transition options */
+  .trans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: .7rem;
+    margin-top: .7rem;
+  }
+  .trans-card {
+    background: var(--cream);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    font-size: .8rem;
+    font-weight: 700;
+  }
+  .trans-card:hover, .trans-card.selected { border-color: var(--amber); background: rgba(255,179,71,0.08); }
+  .trans-card .t-icon { font-size: 1.4rem; margin-bottom: .3rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📖 繪本製作工具</h1>
+  <p>從腳本到影片，打造專屬的繪本故事！</p>
+</header>
+
+<nav>
+  <div class="nav-inner" id="tabNav">
+    <button class="tab-btn active" data-tab="step1"><span class="step-num">1</span>腳本生成</button>
+    <button class="tab-btn" data-tab="step2"><span class="step-num">2</span>AI繪本生成</button>
+    <button class="tab-btn" data-tab="step3"><span class="step-num">3</span>音檔擷取</button>
+    <button class="tab-btn" data-tab="step4"><span class="step-num">4</span>影片製作</button>
+    <button class="tab-btn" data-tab="step5"><span class="step-num">5</span>下載輸出</button>
+    <button class="tab-btn" data-tab="step6"><span class="step-num">6</span>開場影片</button>
+    <button class="tab-btn" data-tab="help"><span class="step-num">?</span>使用說明</button>
+    <button class="tab-btn" data-tab="json"><span class="step-num">⇄</span>JSON匯入匯出</button>
+  </div>
+</nav>
+
+<main>
+  <!-- ═══ STEP 1: 腳本生成 ═══ -->
+  <div class="panel active" id="step1">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(91,184,245,0.15)">📝</div>
+        <div><div class="card-title">腳本生成 Script</div><div class="card-sub">運用AI撰寫英文繪本腳本</div></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>故事主題</label>
+          <input type="text" id="theme" placeholder="例：每天搭渡輪上學的女孩" value="每天搭渡輪上學的女孩">
+        </div>
+        <div class="form-group">
+          <label>目標讀者年齡</label>
+          <select id="targetAge">
+            <option value="3-5">3–5 歲</option>
+            <option value="6-8" selected>6–8 歲（初學英文）</option>
+            <option value="9-12">9–12 歲</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>每頁句子數</label>
+          <input type="number" id="sentPerPage" value="4" min="2" max="8">
+        </div>
+        <div class="form-group">
+          <label>總頁數</label>
+          <input type="number" id="totalPages" value="12" min="4" max="24">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>文學風格</label>
+        <select id="literaryStyle">
+          <option value="warm">兒童文學風格，溫馨勵志</option>
+          <option value="adventure">冒險奇幻</option>
+          <option value="humor">幽默逗趣</option>
+          <option value="educational">知識科普</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>核心價值（多選）</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.4rem">
+          <label style="display:flex;align-items:center;gap:.3rem;font-weight:600;color:var(--ink)"><input type="checkbox" checked> 鼓勵孩子勇於面對</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-weight:600;color:var(--ink)"><input type="checkbox" checked> 體驗生活</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-weight:600;color:var(--ink)"><input type="checkbox"> 友誼</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-weight:600;color:var(--ink)"><input type="checkbox"> 環境保護</label>
+          <label style="display:flex;align-items:center;gap:.3rem;font-weight:600;color:var(--ink)"><input type="checkbox"> 家庭溫情</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>AI工具選擇</label>
+        <select id="aiTool">
+          <option value="chatgpt">ChatGPT</option>
+          <option value="gemini">Gemini</option>
+          <option value="claude">Claude</option>
+        </select>
+      </div>
+
+      <hr class="section-divider">
+      <div class="form-group">
+        <label>生成的腳本（可編輯）</label>
+        <textarea id="scriptOutput" placeholder="點擊「生成腳本」後，腳本內容會顯示於此，你也可以直接貼上已有的腳本...">Page 1: Every morning, Lily puts on her backpack and walks to the ferry dock.
+Page 2: The big blue ferry waits for her, blowing its horn — tooooot!
+Page 3: She waves goodbye to the seagulls as the ferry sets sail.
+Page 4: On the water, Lily watches the city grow smaller and smaller.
+Page 5: She opens her lunchbox and shares a rice ball with her friend Kai.
+Page 6: "Look!" says Kai, pointing at a jumping dolphin.
+Page 7: The ferry docks, and the children rush off with big smiles.
+Page 8: At school, Lily draws a picture of the dolphin she saw.
+Page 9: "I love ferry days," she tells her teacher, Miss Wong.
+Page 10: After school, the ferry carries Lily home again.
+Page 11: The sunset turns the water pink and gold.
+Page 12: Lily hugs her mum. "Today was a good day," she says.</textarea>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="generateScript()">✨ 生成腳本提示詞</button>
+        <button class="btn btn-outline" onclick="copyScript()">📋 複製腳本</button>
+        <button class="btn btn-mint" onclick="saveProgress()">💾 儲存進度</button>
+      </div>
+
+      <div class="tip-box" style="margin-top:1rem">
+        <strong>💡 提示：</strong>字彙量控制在約 200 字，適合初學英文的小學生。語氣溫馨、鼓勵，使用簡單句型。
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <span></span>
+      <button class="btn btn-primary" onclick="goTab('step2')">下一步：AI繪本生成 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2: AI繪本生成 ═══ -->
+  <div class="panel" id="step2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(82,201,160,0.15)">🎨</div>
+        <div><div class="card-title">AI繪本生成 Storyboard</div><div class="card-sub">Gemini Storybook 或其他AI繪本工具</div></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>繪圖工具</label>
+          <select id="drawTool">
+            <option value="gemini">Gemini Storybook</option>
+            <option value="dalle">DALL·E</option>
+            <option value="midjourney">Midjourney</option>
+            <option value="ideogram">Ideogram</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>畫風</label>
+          <select id="artStyle">
+            <option value="watercolor">水彩插畫</option>
+            <option value="cartoon">卡通可愛</option>
+            <option value="flat">平面簡約</option>
+            <option value="sketch">鉛筆素描</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>主角設定</label>
+        <div class="char-preview">
+          <div class="char-card">
+            <div class="char-avatar">👧</div>
+            <input type="text" placeholder="角色名稱" value="Lily">
+            <input type="text" placeholder="外觀描述" value="8歲女孩，黑色短髮，紅色書包">
+          </div>
+          <div class="char-card">
+            <div class="char-avatar">👦</div>
+            <input type="text" placeholder="角色名稱" value="Kai">
+            <input type="text" placeholder="外觀描述" value="8歲男孩，棒球帽，藍色外套">
+          </div>
+          <div class="char-card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;border-style:dashed" onclick="addCharacter()">
+            <div style="font-size:2rem;color:var(--ink-light)">+</div>
+            <div style="font-size:.8rem;color:var(--ink-light)">新增角色</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.8rem;">⚠️ 繪製要求</p>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> 完全使用腳本文字，不可更動任何內容</li>
+        <li><input type="checkbox" checked> 角色外觀必須一致（每頁相同角色）</li>
+        <li><input type="checkbox" checked> 肢體自然，年齡與外觀相稱</li>
+        <li><input type="checkbox" checked> 畫面生動活潑，呈現對比色</li>
+        <li class="warn"><input type="checkbox"> 每頁一張插圖（共 <span id="pageCountDisplay">12</span> 頁）</li>
+      </ul>
+
+      <hr class="section-divider">
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.7rem;">📄 頁面腳本編輯</p>
+      <div class="page-grid" id="pageGrid">
+        <!-- Generated dynamically -->
+      </div>
+      <button class="btn btn-mint btn-sm" style="margin-top:1rem" onclick="addPage()">+ 新增頁面</button>
+
+      <div class="btn-group">
+        <button class="btn btn-mint" onclick="generatePrompt()">🖼️ 生成繪圖提示詞</button>
+        <button class="btn btn-outline" onclick="copyAllPages()">📋 複製全部頁面</button>
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="btn btn-outline" onclick="goTab('step1')">← 上一步</button>
+      <button class="btn btn-mint" onclick="goTab('step3')">下一步：音檔擷取 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: 音檔擷取 ═══ -->
+  <div class="panel" id="step3">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(255,123,107,0.15)">🎵</div>
+        <div><div class="card-title">音檔擷取 Audio</div><div class="card-sub">擷取清晰朗讀音檔</div></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>音訊來源</label>
+          <select id="audioSource">
+            <option value="tts">AI文字轉語音（TTS）</option>
+            <option value="record">現場錄音</option>
+            <option value="upload">上傳音檔</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>輸出格式</label>
+          <select id="audioFormat">
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>朗讀語速</label>
+        <div class="range-row">
+          <input type="range" id="speechRate" min="0.5" max="1.5" step="0.1" value="0.9" oninput="document.getElementById('rateVal').textContent=this.value+'x'">
+          <span class="range-val" id="rateVal">0.9x</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>聲音選擇</label>
+        <select id="voiceSelect">
+          <option>女聲 - 標準英文（清晰）</option>
+          <option>女聲 - 溫柔英文</option>
+          <option>男聲 - 故事講述</option>
+          <option>中文配音 - 普通話</option>
+        </select>
+      </div>
+
+      <div class="tip-box">
+        <strong>⚙️ 操作要點：</strong><br>
+        ✅ 使用 Media Interceptor 擷取清晰音檔<br>
+        ✅ 確保音訊清晰，背景無雜音<br>
+        ✅ 檔案格式：mp3 / wav<br>
+        ✅ 依頁碼排序，方便後續編輯
+      </div>
+
+      <hr class="section-divider">
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.7rem;">🎧 已上傳音檔</p>
+      <div class="audio-list" id="audioList">
+        <div class="audio-item">
+          <div class="audio-icon">🔊</div>
+          <div class="audio-info">
+            <div class="audio-name">page_01.mp3</div>
+            <div class="audio-meta">00:08 · 128kbps · MP3</div>
+          </div>
+          <span class="badge green">已完成</span>
+        </div>
+        <div class="audio-item">
+          <div class="audio-icon">🔊</div>
+          <div class="audio-info">
+            <div class="audio-name">page_02.mp3</div>
+            <div class="audio-meta">00:06 · 128kbps · MP3</div>
+          </div>
+          <span class="badge green">已完成</span>
+        </div>
+        <div class="audio-item" style="border-style:dashed;cursor:pointer" onclick="addAudioFile()">
+          <div class="audio-icon">➕</div>
+          <div class="audio-info">
+            <div class="audio-name">上傳音檔</div>
+            <div class="audio-meta">點擊或拖曳檔案</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-coral" onclick="showToast('🎙️ 開始生成音檔...')">🎙️ 生成全部音檔</button>
+        <button class="btn btn-outline" onclick="showToast('📥 批次下載中...')">📥 批次下載</button>
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="btn btn-outline" onclick="goTab('step2')">← 上一步</button>
+      <button class="btn btn-coral" onclick="goTab('step4')">下一步：影片製作 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 4: CANVA影片製作 ═══ -->
+  <div class="panel" id="step4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(255,179,71,0.15)">🎬</div>
+        <div><div class="card-title">CANVA 影片製作 Video Composition</div><div class="card-sub">工具：Canva</div></div>
+      </div>
+
+      <!-- ① 畫面配置 -->
+      <p style="font-weight:800;margin-bottom:.6rem">① 畫面配置</p>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> 每頁一張插圖</li>
+        <li><input type="checkbox" checked> 人物背面簾遮（預留文字區）</li>
+      </ul>
+      <div class="form-group" style="margin-top:.8rem">
+        <label>文字區域位置</label>
+        <select id="textPos">
+          <option value="bottom">底部（標準）</option>
+          <option value="top">頂部</option>
+          <option value="overlay">全圖疊字</option>
+        </select>
+      </div>
+
+      <hr class="section-divider">
+      <!-- ② 文字設計 -->
+      <p style="font-weight:800;margin-bottom:.6rem">② 文字設計</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>文字底色</label>
+          <div class="swatch-row">
+            <div class="swatch selected" style="background:#fff" title="白色" onclick="selectSwatch(this)"></div>
+            <div class="swatch" style="background:#000" title="黑色" onclick="selectSwatch(this)"></div>
+            <div class="swatch" style="background:rgba(0,0,0,0.5)" title="半透明黑" onclick="selectSwatch(this)"></div>
+            <div class="swatch" style="background:rgba(255,248,240,0.9)" title="奶白" onclick="selectSwatch(this)"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>文字顏色</label>
+          <div class="swatch-row">
+            <div class="swatch" style="background:#2D2A3E" title="深墨" onclick="selectSwatch(this)"></div>
+            <div class="swatch selected" style="background:#fff" title="純白" onclick="selectSwatch(this)"></div>
+            <div class="swatch" style="background:var(--sky)" title="天藍" onclick="selectSwatch(this)"></div>
+            <div class="swatch" style="background:var(--coral)" title="珊瑚紅" onclick="selectSwatch(this)"></div>
+          </div>
+        </div>
+      </div>
+      <ul class="checklist" style="margin-top:.5rem">
+        <li><input type="checkbox" checked> 每行顏色鮮豔對比</li>
+        <li><input type="checkbox" checked> 左對齊，行距加大</li>
+      </ul>
+
+      <hr class="section-divider">
+      <!-- ③ 音訊同步 -->
+      <p style="font-weight:800;margin-bottom:.6rem">③ 音訊同步</p>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> 上傳音檔至 CANVA</li>
+        <li><input type="checkbox"> 返回對齊分割</li>
+        <li><input type="checkbox"> 精準對齊畫面時間</li>
+      </ul>
+
+      <hr class="section-divider">
+      <!-- ④ 轉場效果 -->
+      <p style="font-weight:800;margin-bottom:.6rem">④ 轉場效果</p>
+      <div class="trans-grid">
+        <div class="trans-card selected" onclick="selectTrans(this)"><div class="t-icon">▶️</div>淡入淡出</div>
+        <div class="trans-card" onclick="selectTrans(this)"><div class="t-icon">🔄</div>旋轉</div>
+        <div class="trans-card" onclick="selectTrans(this)"><div class="t-icon">📖</div>翻頁</div>
+        <div class="trans-card" onclick="selectTrans(this)"><div class="t-icon">✨</div>閃爍</div>
+        <div class="trans-card" onclick="selectTrans(this)"><div class="t-icon">➡️</div>滑動</div>
+        <div class="trans-card" onclick="selectTrans(this)"><div class="t-icon">🔍</div>縮放</div>
+      </div>
+      <p class="info-row" style="margin-top:.7rem">💡 點擊「套用至所有場景」統一轉場效果</p>
+
+      <hr class="section-divider">
+      <!-- ⑤ 背景音樂 -->
+      <p style="font-weight:800;margin-bottom:.6rem">⑤ 背景音樂</p>
+      <div class="form-group">
+        <label>音樂風格</label>
+        <select>
+          <option>輕柔兒童音樂</option>
+          <option>海洋自然聲</option>
+          <option>鋼琴輕音樂</option>
+          <option>無背景音樂</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>背景音量（0–15）</label>
+        <div class="range-row">
+          <input type="range" id="bgmVol" min="0" max="15" value="8" oninput="document.getElementById('bgmVolVal').textContent=this.value">
+          <span class="range-val" id="bgmVolVal">8</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>淡入時間（秒）</label>
+          <input type="number" value="3" min="0" max="10">
+        </div>
+        <div class="form-group">
+          <label>淡出時間（秒）</label>
+          <input type="number" value="3" min="0" max="10">
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <!-- Preview -->
+      <p style="font-weight:800;margin-bottom:.7rem">🎞️ 影片預覽</p>
+      <div class="video-preview" id="videoPreview">
+        <div class="slide-text" id="previewText">Every morning, Lily puts on her backpack<br>and walks to the ferry dock.</div>
+        <div class="slide-counter" id="slideCounter">1 / 12</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-amber btn-sm" onclick="prevSlide()">⬅ 上一頁</button>
+        <button class="btn btn-amber btn-sm" onclick="nextSlide()">下一頁 ➡</button>
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="btn btn-outline" onclick="goTab('step3')">← 上一步</button>
+      <button class="btn btn-amber" onclick="goTab('step5')">下一步：下載輸出 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 5: 下載輸出 ═══ -->
+  <div class="panel" id="step5">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(155,127,212,0.15)">⬇️</div>
+        <div><div class="card-title">下載繪本影片 Export</div><div class="card-sub">輸出最終影片</div></div>
+      </div>
+
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.7rem">輸出格式選擇</p>
+      <div class="export-grid">
+        <div class="export-option selected" onclick="toggleExport(this)">
+          <div class="ex-icon">🎬</div>
+          <div class="ex-label">MP4</div>
+          <div class="ex-desc">標準影片格式</div>
+        </div>
+        <div class="export-option" onclick="toggleExport(this)">
+          <div class="ex-icon">📱</div>
+          <div class="ex-label">直式 9:16</div>
+          <div class="ex-desc">IG / TikTok</div>
+        </div>
+        <div class="export-option" onclick="toggleExport(this)">
+          <div class="ex-icon">🖥️</div>
+          <div class="ex-label">橫式 16:9</div>
+          <div class="ex-desc">YouTube</div>
+        </div>
+        <div class="export-option" onclick="toggleExport(this)">
+          <div class="ex-icon">📊</div>
+          <div class="ex-label">GIF</div>
+          <div class="ex-desc">動態預覽圖</div>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top:1rem">
+        <div class="form-group">
+          <label>畫質</label>
+          <select>
+            <option value="1080p" selected>1080p HD</option>
+            <option value="4k">4K Ultra</option>
+            <option value="720p">720p</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>幀率</label>
+          <select>
+            <option>24 fps</option>
+            <option selected>30 fps</option>
+            <option>60 fps</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.7rem">✅ 輸出前檢查</p>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> 音畫同步確認</li>
+        <li><input type="checkbox" checked> 文字清晰可讀</li>
+        <li><input type="checkbox" checked> 畫面完整，無黑邊</li>
+        <li><input type="checkbox"> 背景音樂音量適中</li>
+        <li class="warn"><input type="checkbox"> 全片長度與腳本頁數對應</li>
+      </ul>
+
+      <div class="progress-bar" style="margin-top:1rem">
+        <div class="progress-fill" style="width:0%" id="exportProgress"></div>
+      </div>
+      <p class="info-row" id="exportStatus">準備就緒</p>
+
+      <div class="btn-group">
+        <button class="btn btn-lavender" onclick="startExport()">🚀 開始輸出</button>
+        <button class="btn btn-outline" onclick="showToast('📂 開啟輸出資料夾')">📂 開啟資料夾</button>
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="btn btn-outline" onclick="goTab('step4')">← 上一步</button>
+      <button class="btn btn-lavender" onclick="goTab('step6')">下一步：開場影片 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 6: 開場影片 ═══ -->
+  <div class="panel" id="step6">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(255,123,107,0.15)">🎭</div>
+        <div><div class="card-title">開場影片製作 Intro</div><div class="card-sub">AI生成 + CANVA 整合</div></div>
+      </div>
+
+      <div class="card" style="background:rgba(91,184,245,0.06);border-color:rgba(91,184,245,0.2)">
+        <div class="card-header" style="margin-bottom:.8rem">
+          <div class="card-icon" style="background:rgba(91,184,245,0.15);width:32px;height:32px;font-size:1rem">🤖</div>
+          <div class="card-title" style="font-size:.95rem">AI 生成開場音樂</div>
+        </div>
+        <div class="form-group">
+          <label>上傳腳本至 Gemini</label>
+          <input type="text" placeholder="貼上 Gemini 連結或選擇腳本">
+        </div>
+        <div class="form-group">
+          <label>使用 Create Music 功能</label>
+          <select>
+            <option>輕柔海洋主題</option>
+            <option>歡快兒童進行曲</option>
+            <option>溫馨鋼琴小品</option>
+            <option>自訂描述...</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('🎵 生成開場音樂中...')">🎵 生成開場音樂</button>
+      </div>
+
+      <hr class="section-divider">
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.7rem">📋 整合步驟</p>
+      <ul class="checklist">
+        <li><input type="checkbox"> 影片上傳至 CANVA</li>
+        <li><input type="checkbox"> 置於繪本影片首頁</li>
+        <li><input type="checkbox"> 點擊影片，插取音訊</li>
+        <li><input type="checkbox"> 設定「淡出」約 2 秒</li>
+      </ul>
+
+      <hr class="section-divider">
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.7rem">✅ 最終檢查</p>
+      <ul class="checklist">
+        <li><input type="checkbox"> 音畫同步</li>
+        <li><input type="checkbox"> 文字清晰</li>
+        <li><input type="checkbox"> 畫面完整</li>
+      </ul>
+
+      <div class="form-group" style="margin-top:1rem">
+        <label>開場標題文字</label>
+        <input type="text" placeholder="例：Lily's Ferry Adventure" value="Lily's Ferry Adventure">
+      </div>
+      <div class="form-group">
+        <label>副標題</label>
+        <input type="text" placeholder="作者 / 出版資訊" value="A Story About Courage and Discovery">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>淡出時間（秒）</label>
+          <input type="number" value="2" min="0" max="5">
+        </div>
+        <div class="form-group">
+          <label>工具</label>
+          <select>
+            <option>Gemini + Canva</option>
+            <option>Udio + Canva</option>
+            <option>Suno + Canva</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-coral" onclick="showToast('🎬 開場影片製作完成！')">🎉 完成製作</button>
+        <button class="btn btn-outline" onclick="showToast('📤 分享至社群...')">📤 分享</button>
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="btn btn-outline" onclick="goTab('step5')">← 上一步</button>
+      <button class="btn btn-mint" onclick="goTab('help')">📖 查看說明</button>
+    </div>
+  </div>
+
+  <!-- ═══ HELP: 使用說明 ═══ -->
+  <div class="panel" id="help">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(82,201,160,0.15)">📖</div>
+        <div><div class="card-title">使用說明</div><div class="card-sub">完整工作流程導覽</div></div>
+      </div>
+
+      <div class="help-section">
+        <h3>🚀 六步驟工作流程</h3>
+        <div class="help-step">
+          <div class="help-step-num" style="background:var(--sky)">1</div>
+          <div class="help-step-body">
+            <div class="help-step-title">腳本生成（Script）</div>
+            <div class="help-step-desc">使用 ChatGPT 或 Gemini 生成英文繪本腳本。設定主題、目標年齡、頁數和每頁句子數。字彙量約 200 字，適合初學英文的小學生。</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num" style="background:var(--mint)">2</div>
+          <div class="help-step-body">
+            <div class="help-step-title">AI繪本生成（Storyboard）</div>
+            <div class="help-step-desc">使用 Gemini Storybook 或其他 AI 繪本工具，依據腳本生成插圖。確保角色外觀一致，畫面生動活潑。輸出 12 頁插圖。</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num" style="background:var(--coral)">3</div>
+          <div class="help-step-body">
+            <div class="help-step-title">音檔擷取（Audio）</div>
+            <div class="help-step-desc">使用擴充程式（如 Media Interceptor）擷取繪本朗讀音檔，或使用 TTS 工具生成。確保音訊清晰，格式為 mp3 / wav，依頁碼排序。</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num" style="background:var(--amber)">4</div>
+          <div class="help-step-body">
+            <div class="help-step-title">CANVA 影片製作（Video Composition）</div>
+            <div class="help-step-desc">在 CANVA 中設定畫面配置、文字設計、音訊同步和轉場效果。添加背景音樂，設定淡入淡出各 3 秒，音量 0–15。</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num" style="background:var(--lavender)">5</div>
+          <div class="help-step-body">
+            <div class="help-step-title">下載繪本影片（Export）</div>
+            <div class="help-step-desc">下載影片檔案，格式選擇 MP4，畫質 1080p。輸出前確認音畫同步、文字清晰、畫面完整。</div>
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="help-step-num" style="background:var(--coral)">6</div>
+          <div class="help-step-body">
+            <div class="help-step-title">開場影片製作（Intro）</div>
+            <div class="help-step-desc">將腳本上傳至 Gemini，使用「Create Music」功能生成開場音樂。在 CANVA 中置於繪本影片首頁，設定淡出約 2 秒。</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <div class="help-section">
+        <h3>🎨 核心設計原則</h3>
+        <div class="principles-grid">
+          <div class="principle-card">
+            <div class="principle-icon">🔄</div>
+            <div class="principle-title">一致性</div>
+            <div class="principle-desc">角色、語言、版面保持一致，建立穩定的閱讀體驗</div>
+          </div>
+          <div class="principle-card">
+            <div class="principle-icon">📖</div>
+            <div class="principle-title">可讀性</div>
+            <div class="principle-desc">高對比、清楚字體與行距，提升兒童閱讀理解</div>
+          </div>
+          <div class="principle-card">
+            <div class="principle-icon">⏱️</div>
+            <div class="principle-title">節奏控制</div>
+            <div class="principle-desc">音訊與畫面精準同步，維持流暢的敘事節奏</div>
+          </div>
+          <div class="principle-card">
+            <div class="principle-icon">🧠</div>
+            <div class="principle-title">認知負荷</div>
+            <div class="principle-desc">避免過多動畫與資訊干擾，讓孩子專注故事內容</div>
+          </div>
+          <div class="principle-card">
+            <div class="principle-icon">🌐</div>
+            <div class="principle-title">語言適切性</div>
+            <div class="principle-desc">符合約 200 字詞彙程度，讓孩子在可理解的範圍中學習</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <div class="tip-box">
+        <strong>💡 進階技巧：</strong><br>
+        • 使用 JSON 匯入匯出功能儲存與分享你的繪本設計<br>
+        • 每頁腳本保持 2–4 個句子，適合兒童閱讀節奏<br>
+        • 背景音樂音量建議設定在 8–10，不蓋過朗讀聲音<br>
+        • 轉場效果建議統一使用「淡入淡出」，維持閱讀連貫性<br>
+        • 角色設計時，確保每頁顏色有明顯對比，幫助兒童辨識場景
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="btn btn-outline" onclick="goTab('step6')">← 上一步</button>
+      <button class="btn btn-mint" onclick="goTab('json')">JSON 設計檔 →</button>
+    </div>
+  </div>
+
+  <!-- ═══ JSON: 匯入匯出 ═══ -->
+  <div class="panel" id="json">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(91,184,245,0.15)">📦</div>
+        <div><div class="card-title">JSON 設計檔管理</div><div class="card-sub">儲存、分享和載入你的繪本設計</div></div>
+      </div>
+
+      <p style="font-size:.85rem;color:var(--ink-light);margin-bottom:1rem;line-height:1.6">
+        JSON 設計檔包含你的完整繪本設計，包括腳本、角色設定、音訊配置、影片設定等。你可以將設計檔分享給其他人，或在不同裝置間同步。
+      </p>
+
+      <div class="form-group">
+        <label>目前設計 JSON 預覽</label>
+        <textarea class="json-editor" id="jsonEditor" readonly></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="exportJSON()">⬇️ 匯出 JSON</button>
+        <button class="btn btn-mint" onclick="copyJSON()">📋 複製 JSON</button>
+        <button class="btn btn-outline" onclick="refreshJSON()">🔄 重新整理</button>
+      </div>
+
+      <hr class="section-divider">
+      <div class="form-group">
+        <label>匯入 JSON 設計檔</label>
+        <textarea class="json-editor" id="jsonImport" placeholder='貼上 JSON 設計檔內容，例如：
+{
+  "title": "Lily'"'"'s Ferry Adventure",
+  "theme": "每天搭渡輪上學的女孩",
+  "pages": 12,
+  ...
+}'></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-coral" onclick="importJSON()">⬆️ 匯入套用</button>
+        <button class="btn btn-outline" onclick="loadSampleJSON()">📄 載入範例</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('fileInput').click()">📁 從檔案匯入</button>
+        <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadFromFile(event)">
+      </div>
+
+      <hr class="section-divider">
+      <p style="font-size:.82rem;font-weight:700;margin-bottom:.6rem">📚 已儲存的設計</p>
+      <div id="savedDesigns">
+        <!-- filled dynamically -->
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:.7rem" onclick="clearAllDesigns()">🗑️ 清除全部儲存</button>
+
+      <div class="tip-box" style="margin-top:1rem">
+        <strong>📌 說明：</strong>設計檔以 JSON 格式儲存在瀏覽器本地，也可下載為 <code>.json</code> 檔案分享。匯入後可直接套用至所有步驟。
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────
+const state = {
+  currentSlide: 0,
+  pages: [
+    "Every morning, Lily puts on her backpack and walks to the ferry dock.",
+    "The big blue ferry waits for her, blowing its horn — tooooot!",
+    "She waves goodbye to the seagulls as the ferry sets sail.",
+    "On the water, Lily watches the city grow smaller and smaller.",
+    "She opens her lunchbox and shares a rice ball with her friend Kai.",
+    '"Look!" says Kai, pointing at a jumping dolphin.',
+    "The ferry docks, and the children rush off with big smiles.",
+    "At school, Lily draws a picture of the dolphin she saw.",
+    '"I love ferry days," she tells her teacher, Miss Wong.',
+    "After school, the ferry carries Lily home again.",
+    "The sunset turns the water pink and gold.",
+    'Lily hugs her mum. "Today was a good day," she says.'
+  ]
+};
+
+// ─── TABS ────────────────────────────────
+function goTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.querySelector(`[data-tab="${id}"]`)?.classList.add('active');
+  if (id === 'step2') renderPageGrid();
+  if (id === 'json') refreshJSON();
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => goTab(btn.dataset.tab));
+});
+
+// ─── PAGE GRID ───────────────────────────
+function renderPageGrid() {
+  const grid = document.getElementById('pageGrid');
+  document.getElementById('pageCountDisplay').textContent = state.pages.length;
+  grid.innerHTML = state.pages.map((text, i) => `
+    <div class="page-card">
+      <div class="page-num">P${i+1}</div>
+      <button class="del-btn" onclick="deletePage(${i})">✕</button>
+      <div class="page-card-title">第 ${i+1} 頁文字</div>
+      <textarea onchange="state.pages[${i}]=this.value">${text}</textarea>
+    </div>
+  `).join('');
+}
+
+function addPage() {
+  state.pages.push('Write your story here...');
+  renderPageGrid();
+  showToast('✅ 已新增頁面');
+}
+
+function deletePage(i) {
+  if (state.pages.length <= 1) { showToast('⚠️ 至少需要一頁'); return; }
+  state.pages.splice(i, 1);
+  renderPageGrid();
+}
+
+function addCharacter() { showToast('🎨 角色編輯功能即將推出'); }
+
+// ─── SLIDE PREVIEW ───────────────────────
+function updatePreview() {
+  document.getElementById('previewText').innerHTML = state.pages[state.currentSlide].replace(/\n/g,'<br>');
+  document.getElementById('slideCounter').textContent = `${state.currentSlide+1} / ${state.pages.length}`;
+}
+function nextSlide() {
+  state.currentSlide = (state.currentSlide + 1) % state.pages.length;
+  updatePreview();
+}
+function prevSlide() {
+  state.currentSlide = (state.currentSlide - 1 + state.pages.length) % state.pages.length;
+  updatePreview();
+}
+
+// ─── SCRIPT ──────────────────────────────
+function generateScript() {
+  const theme = document.getElementById('theme').value;
+  const age = document.getElementById('targetAge').value;
+  const pages = document.getElementById('totalPages').value;
+  const spp = document.getElementById('sentPerPage').value;
+  const prompt = `請你扮演兒童繪本作家，為年齡層 ${age} 的孩子撰寫一本英文繪本腳本。\n主題：${theme}\n總頁數：${pages} 頁，每頁 ${spp} 句\n要求：字彙量約200字，語氣溫馨鼓勵，使用簡單句型\n格式：Page 1: ...\nPage 2: ...`;
+  navigator.clipboard.writeText(prompt).then(() => showToast('📋 已複製提示詞！貼至AI工具使用'));
+}
+
+function copyScript() {
+  navigator.clipboard.writeText(document.getElementById('scriptOutput').value);
+  showToast('📋 腳本已複製！');
+}
+
+function generatePrompt() {
+  const style = document.getElementById('artStyle').value;
+  const map = { watercolor:'watercolor illustration style', cartoon:'cute cartoon style', flat:'flat design style', sketch:'pencil sketch style' };
+  const prompt = `Generate ${state.pages.length} storybook illustrations in ${map[style]}. Consistent character design throughout. Each page: ${state.pages.map((p,i)=>`P${i+1}: "${p}"`).join(' | ')}`;
+  navigator.clipboard.writeText(prompt);
+  showToast('🖼️ 繪圖提示詞已複製！');
+}
+
+function copyAllPages() {
+  navigator.clipboard.writeText(state.pages.map((p,i)=>`Page ${i+1}: ${p}`).join('\n'));
+  showToast('📋 所有頁面內容已複製！');
+}
+
+function addAudioFile() { showToast('🎵 點擊選擇音訊檔案'); }
+
+// ─── SWATCHES / TRANS ────────────────────
+function selectSwatch(el) {
+  el.closest('.swatch-row').querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectTrans(el) {
+  el.closest('.trans-grid').querySelectorAll('.trans-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function toggleExport(el) {
+  el.classList.toggle('selected');
+}
+
+// ─── EXPORT ──────────────────────────────
+function startExport() {
+  let progress = 0;
+  const bar = document.getElementById('exportProgress');
+  const status = document.getElementById('exportStatus');
+  const steps = ['準備輸出...','處理音訊...','合成影片...','套用轉場...','最終渲染...','完成！🎉'];
+  const iv = setInterval(() => {
+    progress += 20;
+    bar.style.width = progress + '%';
+    status.textContent = steps[Math.floor(progress/20)-1] || '完成！🎉';
+    if (progress >= 100) { clearInterval(iv); showToast('✅ 影片輸出完成！'); }
+  }, 600);
+}
+
+// ─── SAVE / LOAD ─────────────────────────
+function getDesignData() {
+  return {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    title: document.querySelector('[placeholder="例：Lily\'s Ferry Adventure"]')?.value || "Lily's Ferry Adventure",
+    theme: document.getElementById('theme')?.value || '',
+    targetAge: document.getElementById('targetAge')?.value || '',
+    totalPages: state.pages.length,
+    sentPerPage: document.getElementById('sentPerPage')?.value || 4,
+    literaryStyle: document.getElementById('literaryStyle')?.value || 'warm',
+    aiTool: document.getElementById('aiTool')?.value || 'chatgpt',
+    artStyle: document.getElementById('artStyle')?.value || 'watercolor',
+    drawTool: document.getElementById('drawTool')?.value || 'gemini',
+    audioFormat: document.getElementById('audioFormat')?.value || 'mp3',
+    speechRate: document.getElementById('speechRate')?.value || 0.9,
+    bgmVolume: document.getElementById('bgmVol')?.value || 8,
+    pages: state.pages,
+    script: document.getElementById('scriptOutput')?.value || '',
+    designPrinciples: { consistency: true, readability: true, pacing: true, cognitiveLoad: true, levelAppropriateness: true }
+  };
+}
+
+function saveProgress() {
+  const data = getDesignData();
+  const saves = JSON.parse(localStorage.getItem('picbook_saves') || '[]');
+  saves.unshift({ id: Date.now(), name: data.title || '未命名設計', data });
+  if (saves.length > 10) saves.pop();
+  localStorage.setItem('picbook_saves', JSON.stringify(saves));
+  showToast('💾 設計已儲存！');
+}
+
+function refreshJSON() {
+  document.getElementById('jsonEditor').value = JSON.stringify(getDesignData(), null, 2);
+  renderSavedDesigns();
+}
+
+function copyJSON() {
+  navigator.clipboard.writeText(document.getElementById('jsonEditor').value);
+  showToast('📋 JSON 已複製！');
+}
+
+function exportJSON() {
+  const data = getDesignData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `picbook_${(data.title||'design').replace(/\s+/g,'_')}_${Date.now()}.json`;
+  a.click();
+  showToast('⬇️ JSON 檔案已下載！');
+}
+
+function importJSON() {
+  try {
+    const raw = document.getElementById('jsonImport').value.trim();
+    if (!raw) { showToast('⚠️ 請先貼上 JSON 內容'); return; }
+    const data = JSON.parse(raw);
+    applyDesignData(data);
+    showToast('✅ 設計已成功匯入！');
+  } catch(e) {
+    showToast('❌ JSON 格式錯誤，請檢查內容');
+  }
+}
+
+function applyDesignData(data) {
+  if (data.pages && Array.isArray(data.pages)) state.pages = data.pages;
+  if (data.theme && document.getElementById('theme')) document.getElementById('theme').value = data.theme;
+  if (data.targetAge && document.getElementById('targetAge')) document.getElementById('targetAge').value = data.targetAge;
+  if (data.script && document.getElementById('scriptOutput')) document.getElementById('scriptOutput').value = data.script;
+  updatePreview();
+  refreshJSON();
+}
+
+function loadSampleJSON() {
+  const sample = {
+    version: "1.0", title: "Lily's Ferry Adventure",
+    theme: "每天搭渡輪上學的女孩", targetAge: "6-8", totalPages: 12, sentPerPage: 4,
+    literaryStyle: "warm", aiTool: "chatgpt", artStyle: "watercolor", drawTool: "gemini",
+    audioFormat: "mp3", speechRate: 0.9, bgmVolume: 8,
+    pages: state.pages,
+    script: document.getElementById('scriptOutput')?.value || '',
+    designPrinciples: { consistency: true, readability: true, pacing: true, cognitiveLoad: true, levelAppropriateness: true }
+  };
+  document.getElementById('jsonImport').value = JSON.stringify(sample, null, 2);
+  showToast('📄 範例 JSON 已載入');
+}
+
+function loadFromFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('jsonImport').value = ev.target.result;
+    showToast('📁 檔案已載入，點擊「匯入套用」');
+  };
+  reader.readAsText(file);
+}
+
+function renderSavedDesigns() {
+  const saves = JSON.parse(localStorage.getItem('picbook_saves') || '[]');
+  const container = document.getElementById('savedDesigns');
+  if (!saves.length) { container.innerHTML = '<p style="color:var(--ink-light);font-size:.82rem">尚無儲存的設計</p>'; return; }
+  container.innerHTML = saves.map(s => `
+    <div style="display:flex;align-items:center;gap:.7rem;padding:.7rem .9rem;background:var(--cream);border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:.5rem">
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:.88rem">${s.name}</div>
+        <div style="font-size:.72rem;color:var(--ink-light)">${new Date(s.id).toLocaleString('zh-TW')}</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadSave(${s.id})">載入</button>
+      <button class="btn btn-sm" style="background:rgba(255,123,107,0.1);color:var(--coral);border:none" onclick="deleteSave(${s.id})">刪除</button>
+    </div>
+  `).join('');
+}
+
+function loadSave(id) {
+  const saves = JSON.parse(localStorage.getItem('picbook_saves') || '[]');
+  const save = saves.find(s => s.id === id);
+  if (save) { applyDesignData(save.data); showToast('✅ 設計已載入！'); }
+}
+
+function deleteSave(id) {
+  let saves = JSON.parse(localStorage.getItem('picbook_saves') || '[]');
+  saves = saves.filter(s => s.id !== id);
+  localStorage.setItem('picbook_saves', JSON.stringify(saves));
+  renderSavedDesigns();
+  showToast('🗑️ 已刪除');
+}
+
+function clearAllDesigns() {
+  if (confirm('確定要清除所有儲存的設計嗎？')) {
+    localStorage.removeItem('picbook_saves');
+    renderSavedDesigns();
+    showToast('🗑️ 已清除所有設計');
+  }
+}
+
+// ─── TOAST ───────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ─── INIT ─────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  renderPageGrid();
+  updatePreview();
+  renderSavedDesigns();
+});
+</script>
+</body>
+</html>
